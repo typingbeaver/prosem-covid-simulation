@@ -1,10 +1,68 @@
+;;;;;;;;;;;;;;;
+; DECLARATIONS
+;;;;;;;;;;;;;;;
 
+breed [sars a-sars]
+breed [ang2 an-ang2]
+breed [ace2 an-ace2]
+
+globals []
+
+turtles-own []   ; variables for all turtles
+sars-own [
+  bound?
+]
+ang2-own []
+ace2-own []
+
+patches-own [
+  infected?
+  dead?
+  remaining-lifetime
+]
+
+;;;;;;;;;;;;;;;;;;;
+; SETUP PROCEDURES
+;;;;;;;;;;;;;;;;;;;
+
+to setup
+  clear-all
+  reset-ticks
+  ; set-default-shape ang2 ""
+  ; set-default-shape ace2 ""
+  ; setup-cells
+  setup-sars
+  ; setup-ang2
+  ; setup-ace2
+  recolor
+end
+
+to setup-sars
+  set-default-shape sars "virus"
+  create-sars initial-sars-infection [
+    setxy random-xcor random-ycor
+    set color red
+  ]
+end
+
+;;;;;;;;;;;;;;;;
+; GO PROCEDURES
+;;;;;;;;;;;;;;;;
+
+to go
+
+end
+
+to recolor  ; change color of turtles
+            ; & cells based on current status
+
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-10
-647
-448
+208
+15
+645
+453
 -1
 -1
 13.0
@@ -14,8 +72,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -16
 16
@@ -26,6 +84,70 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
+
+BUTTON
+21
+17
+85
+50
+setup
+setup
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+90
+17
+153
+50
+go
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+20
+70
+192
+103
+initial-sars-infection
+initial-sars-infection
+0
+100
+6.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+19
+108
+193
+141
+hrsace2-concentration
+hrsace2-concentration
+0
+100
+50.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?

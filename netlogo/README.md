@@ -15,3 +15,19 @@ Patch | Interactions
 :---: | :-----------
 Lung cells | **ACE2 funcioality** <br/> * can deactivate Angiotensin II <br/> * can be infected by SARS-CoV-2 & reproduce it
 
+
+## Procedures
+
+### SARS-CoV-2 infection of cell
+
+1. **Binding:** (Link to patch?), center on patch, change colour
+2. **Intruding:** hide SARS-CoV-2 turtle, change cell color, start cell counter
+3. **Reproducing:** spawn new SARS-CoV-2 turtle randomly
+4. **Death:** spawn several new SARS-CoV-2 turtles, change colour
+5. **Recovery:** Repair cell, change color, active again (???)
+
+### SARS-CoV-2 binding to hrsACE2
+
+1. **Binding:** link SARS-CoV-2 turtle with hrsACE2 turtle  
+    multiple binding needed? --> reducing binding capability to cell
+2. **Despawn:** ???

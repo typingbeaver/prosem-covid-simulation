@@ -28,20 +28,41 @@ patches-own [
 to setup
   clear-all
   reset-ticks
-  ; set-default-shape ang2 ""
-  ; set-default-shape ace2 ""
-  ; setup-cells
+  setup-cells
   setup-sars
-  ; setup-ang2
-  ; setup-ace2
+  setup-ang2
+  setup-ace2
   recolor
+end
+
+to setup-cells
+  ask patches [
+    set pcolor grey
+  ]
 end
 
 to setup-sars
   set-default-shape sars "virus"
   create-sars initial-sars-infection [
     setxy random-xcor random-ycor
+    set size 1.5
     set color red
+  ]
+end
+
+to setup-ang2
+  set-default-shape ang2 "triangle"
+  create-ang2 10 [
+    setxy random-xcor random-ycor
+    set color yellow
+  ]
+end
+
+to setup-ace2
+  set-default-shape ace2 "x"
+  create-ace2 hrsace2-concentration [
+    setxy random-xcor random-ycor
+    set color blue
   ]
 end
 
@@ -53,10 +74,18 @@ to go
 
 end
 
+;;;;;;;;;;;;;;;;;;;;
+; TURTLE PROCEDURES
+;;;;;;;;;;;;;;;;;;;;
+
 to recolor  ; change color of turtles
             ; & cells based on current status
 
 end
+
+;;;;;;;;;;;;;;;;;;;
+; PATCH PROCEDURES
+;;;;;;;;;;;;;;;;;;;
 @#$#@#$#@
 GRAPHICS-WINDOW
 208
@@ -128,7 +157,7 @@ initial-sars-infection
 initial-sars-infection
 0
 100
-6.0
+50.0
 1
 1
 NIL

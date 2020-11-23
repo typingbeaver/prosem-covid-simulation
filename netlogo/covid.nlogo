@@ -12,7 +12,9 @@ turtles-own []   ; variables for all turtles
 sars-own [
   bound?
 ]
-ang2-own []
+ang2-own [
+  deactivated?
+]
 ace2-own []
 
 patches-own [

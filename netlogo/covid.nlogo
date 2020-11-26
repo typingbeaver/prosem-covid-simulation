@@ -39,7 +39,7 @@ end
 
 to setup-cells
   ask patches [
-    set pcolor grey
+    ;set pcolor grey ; move to recolor
   ]
 end
 
@@ -48,15 +48,15 @@ to setup-sars
   create-sars initial-sars-infection [
     setxy random-xcor random-ycor
     set size 1.5
-    set color red
+    set color red ; move to recolor
   ]
 end
 
 to setup-ang2
   set-default-shape ang2 "triangle"
-  create-ang2 10 [
+  create-ang2 angiotensin2-concentration [
     setxy random-xcor random-ycor
-    set color yellow
+    set color yellow ; move to recolor
   ]
 end
 
@@ -64,7 +64,7 @@ to setup-ace2
   set-default-shape ace2 "x"
   create-ace2 hrsace2-concentration [
     setxy random-xcor random-ycor
-    set color blue
+    set color blue ; move to recolor
   ]
 end
 
@@ -73,6 +73,15 @@ end
 ;;;;;;;;;;;;;;;;
 
 to go
+  ask turtles[
+    ; random movement
+    fd 0.75 + random-float 0.5
+    rt random-float 360
+  ]
+end
+
+to recolor  ; change color of turtles
+            ; & cells based on current status
 
 end
 
@@ -80,10 +89,7 @@ end
 ; TURTLE PROCEDURES
 ;;;;;;;;;;;;;;;;;;;;
 
-to recolor  ; change color of turtles
-            ; & cells based on current status
 
-end
 
 ;;;;;;;;;;;;;;;;;;;
 ; PATCH PROCEDURES
@@ -151,10 +157,10 @@ NIL
 1
 
 SLIDER
-20
-70
-192
-103
+19
+94
+191
+127
 initial-sars-infection
 initial-sars-infection
 0
@@ -166,12 +172,27 @@ NIL
 HORIZONTAL
 
 SLIDER
+18
+132
+192
+165
+hrsace2-concentration
+hrsace2-concentration
+0
+100
+50.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
 19
-108
-193
-141
-hrsace2-concentration
-hrsace2-concentration
+57
+192
+90
+angiotensin2-concentration
+angiotensin2-concentration
 0
 100
 50.0

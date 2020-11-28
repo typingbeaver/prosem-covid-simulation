@@ -65,7 +65,7 @@ to setup-cells
 end
 
 to setup-sars
-  ;set-default-shape sars "virus"
+  set-default-shape sars "virus"
   create-sars initial-sars-infection [
     setxy random-xcor random-ycor
     set size 1.5
@@ -117,10 +117,6 @@ end
 ;;;;;;;;;;;;;;;;;;;
 
 ; ------------------------------------------------------------------------------
-
-to startup
-  setup-mm-plot
-end
 
 ;; observer procedure to set up model
 to setup
@@ -186,13 +182,10 @@ to go
   ]
   ;-------------
 
-  if pause? and (ticks >= 30)
-    [ stop ]
   ask turtles [ move ]                ;; only non-complexed turtles will move
   ask enzymes [ form-complex ]         ;; enzyme may form complexes with substrate or inhibitor
   ask substrates [ react-forward ]     ;; complexed substrate may turn into product
   ask enzymes [ dissociate ]           ;; or complexes may just split apart
-  calculate-velocity                  ;; calculate V for use in the Michaelis-Menten curve
   tick
 end
 
@@ -242,26 +235,6 @@ to dissociate
         ask old-partner [ setshape ] ] ]
 end
 
-to calculate-velocity
-  let initial-conc substrate-added
-  let current-conc count substrates with [partner = nobody]
-  if ticks > 0
-    [ set v (initial-conc - current-conc) / ticks ]
-end
-
-;;; plotting procedures
-
-to setup-mm-plot
-  set-current-plot "Michaelis-Menten Curve"
-  clear-plot
-end
-
-;; allows user to plot the concentration versus the velocity on the Michaelis-Menten Curve
-to do-mm-plot
-  set-current-plot "Michaelis-Menten Curve"
-  plotxy substrate-added v
-end
-
 
 ; Copyright 2001 Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -269,11 +242,11 @@ end
 GRAPHICS-WINDOW
 289
 10
-647
-369
+809
+531
 -1
 -1
-14.0
+16.0
 1
 10
 1
@@ -283,10 +256,10 @@ GRAPHICS-WINDOW
 1
 1
 1
--12
-12
--12
-12
+0
+31
+0
+31
 1
 1
 1
@@ -336,7 +309,7 @@ Kr
 Kr
 0.0
 100.0
-0.0
+100.0
 1.0
 1
 NIL
@@ -371,17 +344,6 @@ Kd
 1
 NIL
 HORIZONTAL
-
-MONITOR
-289
-393
-355
-438
-Velocity
-v
-3
-1
-11
 
 BUTTON
 20
@@ -437,24 +399,6 @@ PENS
 "Complex" 1.0 0 -2674135 true "" "plot count enzymes with [partner != nobody]"
 "Product" 1.0 0 -13345367 true "" "plot count products"
 
-PLOT
-3
-360
-287
-540
-Michaelis-Menten Curve
-Substrate Conc.
-V
-0.0
-10.0
-0.0
-1.0
-true
-false
-"" ""
-PENS
-"default" 1.0 2 -16777216 true "" ""
-
 SLIDER
 133
 41
@@ -464,62 +408,17 @@ volume
 volume
 0.0
 1000.0
-50.0
+1000.0
 25.0
 1
 molecules
 HORIZONTAL
 
-BUTTON
-289
-512
-364
-545
-clear MM
-setup-mm-plot
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-SWITCH
-289
-444
-390
-477
-pause?
-pause?
-1
-1
--1000
-
-BUTTON
-289
-478
-390
-511
-Record V
-do-mm-plot
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-0
-
 SLIDER
-446
-371
-647
-404
+86
+361
+287
+394
 angiotensin2-concentration
 angiotensin2-concentration
 0
@@ -531,10 +430,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-475
-406
-647
-439
+115
+396
+287
+429
 initial-sars-infection
 initial-sars-infection
 0
@@ -546,10 +445,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-473
-441
-647
-474
+113
+431
+287
+464
 hrsace2-concentration
 hrsace2-concentration
 0
@@ -596,17 +495,9 @@ Experiment with using the ADD-SUBSTRATE and ADD-INHIBITOR buttons to observe the
 
 Note that when complexes form they stop moving.  This isn't intended to be physically realistic; it just makes the formation of complexes easier to see.  (This shouldn't affect the overall behavior of the model.)
 
-To plot the Michaelis-Menten Curve for your reaction conditions, you will have to perform several runs at different concentrations in order to measure the velocity for each run. To do this, set the PAUSE? switch ON.  When this switch is on, the model automatically stops after 30 time ticks.  Begin your assay by setting the substrate volume to zero and running the simulation.  When it stops, press RECORD V and a point will be plotted on the Michaelis-Menten Curve. Run another simulation with a higher concentration of substrate by changing the VOLUME slider, then hitting SETUP followed by GO, followed by RECORD V once the model stops.  Continue for several values of substrate concentrations until a curve is generated. If you wish to start over hit CLEAR MM to reset the plot.
-
 ## THINGS TO NOTICE
 
 Watch the rate at which the enzyme and substrate stick together. How does this affect the conversion of substrate into product? What would happen if Kd is very high and Kc is very low? If Kr were the same order of magnitude as Kd and Kc?
-
-Watch the Michaelis-Menten Curve. Does it match up with the discussion of enzyme kinetics discussed above? Why does the plot initially slope upward, then flatten out?
-
-Which variables can alter the magnitude of v?
-
-How does the magnitude of Kd and Kr affect the smoothness of the Michaelis-Menten Curve?
 
 ## THINGS TO TRY
 

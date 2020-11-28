@@ -1,15 +1,13 @@
+; ------------------------------------------------------------------------------
 ;;;;;;;;;;;;;;;
 ; DECLARATIONS
 ;;;;;;;;;;;;;;;
 
-breed [sars a-sars]
-breed [ang2 an-ang2]
-breed [ace2 an-ace2]
-
-; -------------------------------
+breed [sars a-sars]  ; SARS-CoV-2
+breed [ang2 an-ang2] ; Angiotensin 2
+breed [ace2 an-ace2] ; hrsACE2
 
 ; For "Enzyme Kinetics":
-
 breed [ enzymes enzyme]      ;; red turtles that bind with and catalyze substrate
 breed [ substrates substrate ]   ;; green turtles that bind with enzyme
 breed [ inhibitors inhibitor ]   ;; yellow turtle that binds to enzyme, but does not react
@@ -17,14 +15,10 @@ breed [ products product ]     ;; blue turtle generated from enzyme catalysis
 
 ; ------------------------------
 
-
-; globals []
 globals [
-  substrate-added ;; keeps track of how much substrate has been added
-  v               ;; rate of complex formation at each time step
+
 ]
 
-; turtles-own []   ; variables for all turtles
 turtles-own [
   partner      ;; holds the turtle this turtle is complexed with,
                ;; or nobody if not complexed
@@ -33,10 +27,14 @@ turtles-own [
 sars-own [
   bound?
 ]
+
 ang2-own [
   deactivated?
 ]
-ace2-own []
+
+ace2-own [
+
+]
 
 patches-own [
   infected?
@@ -44,19 +42,26 @@ patches-own [
   remaining-lifetime
 ]
 
+; ------------------------------------------------------------------------------
 ;;;;;;;;;;;;;;;;;;;
 ; SETUP PROCEDURES
 ;;;;;;;;;;;;;;;;;;;
 
-;to setup
-;  clear-all
-;  reset-ticks
-;  setup-cells
-;  setup-sars
-;  setup-ang2
-;  setup-ace2
-;  recolor
-;end
+to setup
+  clear-turtles                    ;; clears view -- don't use clear-all so MM plot doesn't clear
+  reset-ticks
+  add enzymes 150                   ;; starts with constant number of enzymes
+  add substrates volume             ;; add substrate based on slider
+
+  ;----------
+  setup-cells
+  setup-sars
+  setup-ang2
+  setup-ace2
+  recolor
+  ;----------
+end
+
 
 to setup-cells
   ask patches [
@@ -68,7 +73,6 @@ to setup-sars
   set-default-shape sars "virus"
   create-sars initial-sars-infection [
     setxy random-xcor random-ycor
-    set size 1.5
     set color red ; move to recolor
   ]
 end
@@ -89,53 +93,6 @@ to setup-ace2
   ]
 end
 
-;;;;;;;;;;;;;;;;
-; GO PROCEDURES
-;;;;;;;;;;;;;;;;
-
-;to go
-;  ask turtles[
-;   ; random movement
-;    fd 0.75 + random-float 0.5
-;    rt random-float 360
-;  ]
-;end
-
-to recolor  ; change color of turtles
-            ; & cells based on current status
-
-end
-
-;;;;;;;;;;;;;;;;;;;;
-; TURTLE PROCEDURES
-;;;;;;;;;;;;;;;;;;;;
-
-
-
-;;;;;;;;;;;;;;;;;;;
-; PATCH PROCEDURES
-;;;;;;;;;;;;;;;;;;;
-
-; ------------------------------------------------------------------------------
-
-;; observer procedure to set up model
-to setup
-  clear-turtles                    ;; clears view -- don't use clear-all so MM plot doesn't clear
-  set substrate-added 0
-  set v 0
-  add enzymes 150                   ;; starts with constant number of enzymes
-  add substrates volume             ;; add substrate based on slider
-  reset-ticks
-
-  ;----------
-  setup-cells
-  setup-sars
-  setup-ang2
-  setup-ace2
-  recolor
-  ;----------
-end
-
 ;; observer procedure to add molecules to reaction
 to add [kind amount]
   create-turtles amount
@@ -143,8 +100,24 @@ to add [kind amount]
       setxy random-xcor random-ycor
       set partner nobody
       setshape ]
-  if kind = substrates
-    [ set substrate-added substrate-added + amount ]
+end
+
+; ------------------------------------------------------------------------------
+;;;;;;;;;;;;;;;;
+; GO PROCEDURES
+;;;;;;;;;;;;;;;;
+
+to go
+  ask turtles [ move ]                ;; only non-complexed turtles will move
+  ask enzymes [ form-complex ]         ;; enzyme may form complexes with substrate or inhibitor
+  ask substrates [ react-forward ]     ;; complexed substrate may turn into product
+  ask enzymes [ dissociate ]           ;; or complexes may just split apart
+  tick
+end
+
+to recolor  ; change color of turtles
+            ; & cells based on current status
+
 end
 
 ;; procedure that assigns a specific shape to a turtle, and shows
@@ -171,27 +144,14 @@ to setshape
                   set hidden? false ] ] ] ]
 end
 
-;; main procedure
-to go
-
-  ;-------------
-  ask turtles[
-    ; random movement
-    fd 0.75 + random-float 0.5
-    rt random-float 360
-  ]
-  ;-------------
-
-  ask turtles [ move ]                ;; only non-complexed turtles will move
-  ask enzymes [ form-complex ]         ;; enzyme may form complexes with substrate or inhibitor
-  ask substrates [ react-forward ]     ;; complexed substrate may turn into product
-  ask enzymes [ dissociate ]           ;; or complexes may just split apart
-  tick
-end
+; ------------------------------------------------------------------------------
+;;;;;;;;;;;;;;;;;;;;
+; TURTLE PROCEDURES
+;;;;;;;;;;;;;;;;;;;;
 
 to move  ;; turtle procedure
   if partner = nobody
-    [ fd 1
+    [ fd 0.75 + random-float 0.5
       rt random-float 360 ]
 end
 
@@ -235,6 +195,14 @@ to dissociate
         ask old-partner [ setshape ] ] ]
 end
 
+; ------------------------------------------------------------------------------
+;;;;;;;;;;;;;;;;;;;
+; PATCH PROCEDURES
+;;;;;;;;;;;;;;;;;;;
+
+
+
+; ------------------------------------------------------------------------------
 
 ; Copyright 2001 Uri Wilensky.
 ; See Info tab for full copyright and license.

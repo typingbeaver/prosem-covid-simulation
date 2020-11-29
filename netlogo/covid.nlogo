@@ -37,9 +37,10 @@ ace2-own [
 ]
 
 patches-own [
-  infected?
-  dead?
+  inactive? ; when SARS-CoV-2 is bound to cell and is blocking Enzyme activity
+  infected? ; when cell is infected with SARS-CoV-2, reproducing virus
   remaining-lifetime
+  dead?     ; self-expainatory
 ]
 
 ; ------------------------------------------------------------------------------
@@ -48,10 +49,11 @@ patches-own [
 ;;;;;;;;;;;;;;;;;;;
 
 to setup
-  clear-turtles                    ;; clears view -- don't use clear-all so MM plot doesn't clear
+  clear-all
+  ;clear-turtles                    ;; clears view -- don't use clear-all so MM plot doesn't clear
   reset-ticks
-  add enzymes 150                   ;; starts with constant number of enzymes
-  add substrates volume             ;; add substrate based on slider
+ ; add enzymes 150                   ;; starts with constant number of enzymes
+ ; add substrates volume             ;; add substrate based on slider
 
   ;----------
   setup-cells
@@ -65,7 +67,11 @@ end
 
 to setup-cells
   ask patches [
-    ;set pcolor grey ; move to recolor
+    set inactive? false
+    set infected? false
+    set remaining-lifetime infection-time
+    set dead? false
+    set pcolor magenta
   ]
 end
 
@@ -79,7 +85,7 @@ end
 
 to setup-ang2
   set-default-shape ang2 "triangle"
-  create-ang2 angiotensin2-concentration [
+  create-ang2 initial-ang2-concentration [
     setxy random-xcor random-ycor
     set color yellow ; move to recolor
   ]
@@ -108,16 +114,31 @@ end
 ;;;;;;;;;;;;;;;;
 
 to go
+  add-ang2
   ask turtles [ move ]                ;; only non-complexed turtles will move
   ask enzymes [ form-complex ]         ;; enzyme may form complexes with substrate or inhibitor
   ask substrates [ react-forward ]     ;; complexed substrate may turn into product
   ask enzymes [ dissociate ]           ;; or complexes may just split apart
+  ask patches [ reproduce ]
   tick
 end
 
 to recolor  ; change color of turtles
             ; & cells based on current status
 
+end
+
+;; adds Angiotensin 2 regularly until max is reached
+to add-ang2
+  if count ang2 < max-ang2-concentration [
+    if (ticks mod 10) = 0 [
+      add ang2 add-every-10-ticks ; TODO needs some function
+    ]
+  ]
+end
+
+to add-hrsACE2 ; button method - adds
+  add ace2 hrsace2-concentration
 end
 
 ;; procedure that assigns a specific shape to a turtle, and shows
@@ -150,9 +171,8 @@ end
 ;;;;;;;;;;;;;;;;;;;;
 
 to move  ;; turtle procedure
-  if partner = nobody
-    [ fd 0.75 + random-float 0.5
-      rt random-float 360 ]
+    fd 0.75 + random-float 0.5
+    rt random-float 360
 end
 
 ;; An enzyme forms a complex by colliding on a patch with a substrate
@@ -200,7 +220,21 @@ end
 ; PATCH PROCEDURES
 ;;;;;;;;;;;;;;;;;;;
 
-
+; lets cells reproduce the virus, release on death
+to reproduce
+  if infected? [
+    set remaining-lifetime remaining-lifetime - 1 ; reduce lifetime
+    set pcolor 120 + (remaining-lifetime * (4 / infection-time)) ; darkens cell !!FIX!!  >MOVE TO RECOLOR<
+    ifelse remaining-lifetime <= 0 [ ; reproduce virus
+      set infected? false
+      set dead? true
+      sprout-sars reproduction-factor [] ; spawn sars at dead cell's location
+    ] [ ; random sprouting
+      ; TODO?
+    ]
+    ; recolor
+  ]
+end
 
 ; ------------------------------------------------------------------------------
 
@@ -235,10 +269,10 @@ ticks
 30.0
 
 BUTTON
-4
-41
+18
+35
+109
 68
-74
 setup
 setup
 NIL
@@ -246,16 +280,16 @@ NIL
 T
 OBSERVER
 NIL
-NIL
+S
 NIL
 NIL
 1
 
 BUTTON
+123
+36
+214
 69
-41
-130
-74
 go
 go
 T
@@ -263,16 +297,16 @@ T
 T
 OBSERVER
 NIL
-NIL
+G
 NIL
 NIL
 0
 
 SLIDER
-133
-146
-287
-179
+967
+128
+1121
+161
 Kr
 Kr
 0.0
@@ -284,10 +318,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-133
-76
-287
-109
+967
+58
+1121
+91
 Kc
 Kc
 0.0
@@ -299,10 +333,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-133
-111
-287
-144
+967
+93
+1121
+126
 Kd
 Kd
 0.0
@@ -314,10 +348,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-20
-146
-120
-179
+854
+128
+954
+161
 add inhibitor
 add inhibitors volume
 NIL
@@ -331,10 +365,10 @@ NIL
 0
 
 BUTTON
-20
-111
-120
-144
+854
+93
+954
+126
 add substrate
 add substrates volume
 NIL
@@ -348,10 +382,10 @@ NIL
 0
 
 PLOT
-3
-181
-287
-359
+837
+164
+1121
+342
 Concentrations
 time
 C
@@ -363,15 +397,15 @@ true
 true
 "" ""
 PENS
-"Substrate" 1.0 0 -10899396 true "" "plot count substrates with [partner = nobody]"
-"Complex" 1.0 0 -2674135 true "" "plot count enzymes with [partner != nobody]"
-"Product" 1.0 0 -13345367 true "" "plot count products"
+"Angiotensin 2" 1.0 0 -10899396 true "" "plot count ang2"
+"SARS-CoV-2" 1.0 0 -2674135 true "" "plot count sars"
+"hrsACE2" 1.0 0 -13345367 true "" "plot count ace2"
 
 SLIDER
-133
-41
-287
-74
+967
+23
+1121
+56
 volume
 volume
 0.0
@@ -383,48 +417,175 @@ molecules
 HORIZONTAL
 
 SLIDER
-86
-361
-287
-394
-angiotensin2-concentration
-angiotensin2-concentration
+19
+93
+261
+126
+initial-ang2-concentration
+initial-ang2-concentration
 0
 100
-48.0
+4.0
+1
+1
+Angiotensin 2
+HORIZONTAL
+
+SLIDER
+23
+281
+263
+314
+initial-sars-infection
+initial-sars-infection
+0
+20
+5.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-115
-396
-287
-429
-initial-sars-infection
-initial-sars-infection
+25
+421
+263
+454
+hrsace2-concentration
+hrsace2-concentration
 0
 100
-50.0
+15.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-113
-431
-287
-464
-hrsace2-concentration
-hrsace2-concentration
+19
+129
+261
+162
+add-every-10-ticks
+add-every-10-ticks
 0
-100
-50.0
+50
+14.0
 1
 1
+Angiotensin 2
+HORIZONTAL
+
+TEXTBOX
+21
+165
+267
+192
+set this value so Ang2 concentration stays stable\nw/o SARS & hrsACE2
+11
+0.0
+0
+
+TEXTBOX
+9
+75
+273
+93
+╒═ Angiotensin 2 ═════════════════════╕
+11
+0.0
+1
+
+TEXTBOX
+14
+265
+278
+283
+╒═ SARS-CoV-2 ═════════════════════╕
+11
+0.0
+1
+
+TEXTBOX
+19
+402
+277
+420
+╒═ hrsACE2 ═══════════════════════╕
+11
+0.0
+1
+
+TEXTBOX
+10
+16
+247
+34
+╒═ CONTROLS ═════════════════╕\n
+11
+0.0
+1
+
+BUTTON
+160
+457
+263
+490
+add hrsACE2
+add-hrsACE2
 NIL
+1
+T
+OBSERVER
+NIL
+A
+NIL
+NIL
+0
+
+SLIDER
+24
+317
+263
+350
+infection-time
+infection-time
+1
+50
+27.0
+1
+1
+ticks
+HORIZONTAL
+
+SLIDER
+24
+352
+164
+385
+reproduction-factor
+reproduction-factor
+1
+5
+3.0
+1
+1
+x
+HORIZONTAL
+
+SLIDER
+20
+200
+261
+233
+max-ang2-concentration
+max-ang2-concentration
+10
+250
+40.0
+10
+1
+Angiotensin 2
 HORIZONTAL
 
 @#$#@#$#@

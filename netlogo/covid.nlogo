@@ -199,7 +199,7 @@ to infect
     if (random-float 10 < 3) [ ; 30% chance to intrude cell
       ask partner [
         set infected? true
-        set partner nobody
+        set ppartner nobody
       ]
     die
  ] ]

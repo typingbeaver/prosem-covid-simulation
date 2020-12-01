@@ -1,8 +1,18 @@
+; Helpfull vocabulary:
+; "Agents" are objects in NetLogo, like viruses.
+; Field is divided into squares & those squares are called "Patches".
+
+; To go 1 patch forward, you can use "forward 1".
+; You can also use "right", "left" or "random" for moving stuff.
 ; ------------------------------------------------------------------------------
 ;;;;;;;;;;;;;;;
 ; DECLARATIONS
 ;;;;;;;;;;;;;;;
 
+; "breed" can only be used at the beginning of code.
+; It's helpfull to define for all species a breed, 'cause of different behaviour etc.
+; & you can change all "viruses" for example at the same time,
+; & you can spawn new "virus"-objects by writing "sars a-sars <PutNumberHere>".
 breed [sars a-sars]  ; SARS-CoV-2
 breed [ang2 an-ang2] ; Angiotensin 2
 breed [ace2 an-ace2] ; hrsACE2
@@ -48,21 +58,27 @@ patches-own [
 ; SETUP PROCEDURES
 ;;;;;;;;;;;;;;;;;;;
 
+; Defines what happens when "setup"-button is clicked:
 to setup
+  ; "clear-all" deletes all agents etc. from past iterations, to have a clean next start:
   clear-all
+  ; "reset-ticks" is setting up the NetLogo-time to "0":
   reset-ticks
- ; add enzymes 150                   ;; starts with constant number of enzymes
- ; add substrates volume             ;; add substrate based on slider
+  add enzymes 5                     ;; starts with constant number of enzymes
+  ; add substrates volume             ;; add substrate based on slider
 
+  ; Other "setup-" named methods are called here:
   setup-cells
   setup-sars
   setup-ang2
   setup-ace2
 end
 
-
 to setup-cells
+  ; You have to call "ask patches", when you want to do things with patches.
+  ; Here you change "all" patches (square-field) at the same time:
   ask patches [
+    ; "set" is everywhere setting up or changing:
     set infected? false
     set remaining-lifetime infection-time
     set dead? false
@@ -108,6 +124,7 @@ end
 ; GO PROCEDURES
 ;;;;;;;;;;;;;;;;
 
+; When "go"-button is clicked:
 to go
   add-ang2
   ask turtles [ move ]
@@ -120,6 +137,9 @@ to go
   ; ask patches [ form-complex ]
   ; ask ang2 [ react-forward ]
   ask sars [ infect ]
+
+  ask sars [ virusCollidesWithEnzyme ]
+
   ; leave out dissociate?
   ask patches [ reproduce ]
   tick
@@ -127,6 +147,7 @@ end
 
 ;; COPY OF SETSHAPE
 to recolor  ; change color of turtles based on current status
+  ; "if" & "ifelse" is the same like in other programming languages:
   ifelse breed = sars [
     set color red
   ] [ ifelse breed = ang2 [
@@ -201,8 +222,18 @@ to infect
         set infected? true
         set ppartner nobody
       ]
+    ; "die" removes agents from simulation:
     die
  ] ]
+end
+
+; Method for the random collision of virus & enzyme:
+to virusCollidesWithEnzyme
+  ask sars [
+    let closest-sars min-one-of enzymes [distance myself]
+    set heading towards closest-sars
+    forward 1
+  ]
 end
 
 ;; An enzyme forms a complex by colliding on a patch with a substrate
@@ -228,6 +259,7 @@ to react-forward
   if (partner != nobody) and (random-float 1000 < Kr)
     [ set breed products
       ask partner [ set partner nobody ]
+      ; "let" is to define a variable in NetLogo:
       let old-partner partner
       set partner nobody
       setshape

@@ -14,16 +14,8 @@
 ; & you can change all "viruses" for example at the same time,
 ; & you can spawn new "virus"-objects by writing "sars a-sars <PutNumberHere>".
 breed [sars a-sars]  ; SARS-CoV-2
-breed [ang2 an-ang2] ; Angiotensin 2
-breed [ace2 an-ace2] ; hrsACE2
-
-; For "Enzyme Kinetics":
-breed [ enzymes enzyme]      ;; red turtles that bind with and catalyze substrate
-breed [ substrates substrate ]   ;; green turtles that bind with enzyme
-breed [ inhibitors inhibitor ]   ;; yellow turtle that binds to enzyme, but does not react
-breed [ products product ]     ;; blue turtle generated from enzyme catalysis
-
-; ------------------------------
+breed [ang2 an-ang2] ; Angiotensin II
+breed [ace2 an-ace2] ; hrsACE2 (enzyme)
 
 globals [
 
@@ -32,18 +24,11 @@ globals [
 turtles-own [
   partner      ;; holds the turtle this turtle is complexed with,
                ;; or nobody if not complexed
-]
-
-sars-own [
-  bound?
+  bound?  ;; states if SARS-CoV-2 or Ang2 is bound to an enzyme
 ]
 
 ang2-own [
   deactivated?
-]
-
-ace2-own [
-
 ]
 
 patches-own [
@@ -64,14 +49,10 @@ to setup
   clear-all
   ; "reset-ticks" is setting up the NetLogo-time to "0":
   reset-ticks
-  add enzymes 5                     ;; starts with constant number of enzymes
-  ; add substrates volume             ;; add substrate based on slider
 
   ; Other "setup-" named methods are called here:
   setup-cells
-  setup-sars
-  setup-ang2
-  setup-ace2
+  setup-turtles
 end
 
 to setup-cells
@@ -79,44 +60,37 @@ to setup-cells
   ; Here you change "all" patches (square-field) at the same time:
   ask patches [
     ; "set" is everywhere setting up or changing:
+    set ppartner nobody
     set infected? false
-    set remaining-lifetime infection-time
+    set remaining-lifetime infection-time  ;; TODO: add random?
     set dead? false
     precolor
   ]
 end
 
-to setup-sars
+to setup-turtles
+  ;; SARS-CoV-2
   set-default-shape sars "virus"
-  create-sars initial-sars-infection [
-    setxy random-xcor random-ycor
-    recolor
-  ]
-end
-
-to setup-ang2
+  add sars initial-sars-infection
+  ;; Angiotensin II
   set-default-shape ang2 "triangle"
-  create-ang2 initial-ang2-concentration [
-    setxy random-xcor random-ycor
-    recolor
-  ]
-end
-
-to setup-ace2
+  add ang2 initial-ang2-concentration
+  ;; ACE2
   set-default-shape ace2 "x"
-  create-ace2 hrsace2-concentration [
-    setxy random-xcor random-ycor
-    recolor
-  ]
+  add ace2 hrsace2-concentration
 end
 
 ;; observer procedure to add molecules to reaction
 to add [kind amount]
-  create-turtles amount
-    [ set breed kind
-      setxy random-xcor random-ycor
-      set partner nobody
-      recolor ]
+  create-turtles amount [
+    set breed kind
+    setxy random-xcor random-ycor
+    set size 0.8
+    set partner nobody
+    set bound? false
+    if breed = ang2 [ set deactivated? false ]
+    recolor
+  ]
 end
 
 ; ------------------------------------------------------------------------------
@@ -127,80 +101,52 @@ end
 ; When "go"-button is clicked:
 to go
   add-ang2
-  ask turtles [ move ]
-
- ; ask enzymes [ form-complex ]         ;; enzyme may form complexes with substrate or inhibitor
- ; ask substrates [ react-forward ]     ;; complexed substrate may turn into product
- ; ask enzymes [ dissociate ]           ;; or complexes may just split apart
-
-  ; ask ace2 [ form-complex ]
-  ; ask patches [ form-complex ]
-  ; ask ang2 [ react-forward ]
-  ask sars [ infect ]
-
-  ask sars [ virusCollidesWithEnzyme ]
-
+  ask turtles [ move ]               ;; random movement
+  ask ace2 [ form-ace2-complex ]     ;; free enzymes have higher priority than
+  ask patches [ form-cell-complex ]  ;; cells's due to free movement
+  ask ang2 [ react-forward ]         ;; enzyme catalysation
+  ask sars [ infect ]                ;; infect cells
   ; leave out dissociate?
-  ask patches [ reproduce ]
+  ; ask enzymes [ dissociate ]
+  ask patches [ reproduce ]          ;; let cells produce new SARS
   tick
 end
 
-;; COPY OF SETSHAPE
-to recolor  ; change color of turtles based on current status
-  ; "if" & "ifelse" is the same like in other programming languages:
+; change color of turtles based on current status
+to recolor
   ifelse breed = sars [
-    set color red
+    ifelse bound?
+      [ set color red - 2 ]
+      [ set color red ]
   ] [ ifelse breed = ang2 [
-     set color yellow
-  ] [ if breed = ace2 [
-    set color blue
-  ] ] ]
+    ifelse bound?
+      [ set color yellow - 2 ]
+      [ set color yellow ]
+  ] [ if breed = ace2
+    [ set color blue ]
+  ] ]
 end
 
-to precolor  ; change color of cells based on current status
+; change color of cells based on current status
+to precolor
   ifelse infected? = false [
-    set pcolor grey - 1
+    set pcolor pink - 1.5
   ] [ ifelse dead? = false [
-    set pcolor remaining-lifetime * (3.5 / infection-time) ; darkens cell !!FIX!!
+    set pcolor remaining-lifetime * (3.5 / infection-time) ; darkens cell, grey to black
   ] [ ; dead? = true
     set pcolor black
   ] ]
 end
 
-;; procedure that assigns a specific shape to a turtle, and shows
-;; or hides it, depending on its state
-to setshape
-  ifelse breed = enzymes
-    [ set color red
-      ifelse partner = nobody
-        [ set shape "enzyme" ]
-        [ ifelse ([breed] of (partner) = substrates)
-            [ set shape "complex" ]
-            [ set shape "inhib complex" ] ] ]
-    [ ifelse breed = substrates
-        [ set color green
-          set shape "substrate"
-          set hidden? (partner != nobody) ]
-        [ ifelse breed = inhibitors
-            [ set color yellow
-              set shape "inhibitor"
-              set hidden? (partner != nobody) ]
-            [ if breed = products
-                [ set color blue
-                  set shape "substrate"
-                  set hidden? false ] ] ] ]
-end
-
 ;; adds Angiotensin 2 regularly until max is reached
 to add-ang2
   if count ang2 < max-ang2-concentration [
-    if (ticks mod 5) = 0 [
-      add ang2 add-every-5-ticks ; TODO needs some function
-    ]
+      add ang2 add-every-tick ; TODO: needs some function
   ]
 end
 
-to add-hrsACE2 ; button method - adds
+;; button method
+to add-hrsACE2
   add ace2 hrsace2-concentration
 end
 
@@ -209,15 +155,48 @@ end
 ; TURTLE PROCEDURES
 ;;;;;;;;;;;;;;;;;;;;
 
-to move  ;; turtle procedure
+;; random movement
+to move
+  if bound? = false [
     fd 0.75 + random-float 0.5
     rt random-float 360
+  ]
+end
+
+to form-ace2-complex
+  if partner != nobody
+    [ stop ]  ;; can't bind to multiple molecules in this simulation
+  set partner one-of other turtles-here with [bound? = false]  ;; search for reaction partner
+  if partner = nobody
+    [ stop ]  ;; stop when no reaction partners available on this patch
+  if [partner] of partner != nobody
+    [ set partner nobody stop ]  ;; just in case two cells grab the same partner
+  ifelse ( [breed] of partner = ang2 and random-float 100 < k-binding-ang2 )    ;; chance of binding
+      or ( [breed] of partner = sars and random-float 100 < k-binding-sars ) [  ;; chance of binding
+    ifelse [breed] of partner = sars [
+      ;; if complexed with SARS-CoV-2 remove turtles
+      ask partner [ die ]
+      die
+    ] [ ;; else bind with Angiotensin II
+      ask partner [
+        set partner myself
+        set bound? true
+        recolor
+      ]
+      setxy [xcor] of partner [ycor] of partner  ;; center enzyme on substrate
+      create-link-to partner [                   ;; & link for combined movement
+        tie
+        hide-link
+      ]
+    ]
+  ]
+  [ set partner nobody ]  ;; compex-forming unsucessful
 end
 
 ; SARS-CoV-2 procedure
 to infect
-  if is-patch? partner [  ; hrsACE2 can't get infected
-    if (random-float 10 < 3) [ ; 30% chance to intrude cell
+  if is-patch? partner [  ;; hrsACE2 can't get infected
+    if (random-float 100 < k-cell-infection) [  ;; chance to intrude cell
       ask partner [
         set infected? true
         set ppartner nobody
@@ -227,82 +206,87 @@ to infect
  ] ]
 end
 
-; Method for the random collision of virus & enzyme:
-to virusCollidesWithEnzyme
-  ask sars [
-    let closest-sars min-one-of enzymes [distance myself]
-    set heading towards closest-sars
-    forward 1
-  ]
-end
-
-;; An enzyme forms a complex by colliding on a patch with a substrate
-;; or inhibitor.  If it collides with an inhibitor, it always forms
-;; a complex.  If it collides with a substrate, Kc is its percent chance
-;; of forming a complex.
-to form-complex  ;; enzyme procedure
-  if partner != nobody [ stop ]
-  set partner one-of (other turtles-here with [partner = nobody])
-  if partner = nobody [ stop ]
-  if [partner] of partner != nobody [ set partner nobody stop ]  ;; just in case two enzymes grab the same partner
-  ifelse ((([breed] of partner) = substrates) and ((random-float 100) < Kc))
-     or (([breed] of partner) = inhibitors)
-    [ ask partner [ set partner myself ]
-      setshape
-      ask partner [ setshape ] ]
-    [ set partner nobody ]
-end
-
 ;; substrate procedure that controls the rate at which complexed substrates
 ;; are converted into products and released from the complex
 to react-forward
-  if (partner != nobody) and (random-float 1000 < Kr)
-    [ set breed products
-      ask partner [ set partner nobody ]
-      ; "let" is to define a variable in NetLogo:
-      let old-partner partner
-      set partner nobody
-      setshape
-      ask old-partner [ setshape ] ]
+  if (partner != nobody) and (random-float 100 < k-react-ang2) [
+    ;set deactivated? true
+    ;set bound? false
+    ifelse is-patch? partner
+      [ ask partner [set ppartner nobody] ]  ;; if bound to cell
+    [
+      ask partner [set partner nobody]
+      ask my-links [ die ]
+    ]   ;; if bound to hrsACE2
+    ;set partner nobody
+    ;recolor
+    die
+  ]
 end
 
 ;; enzyme procedure that controls the rate at which complexed turtles break apart
-to dissociate
-  if partner != nobody
-    [ if ([breed] of partner = substrates) and (random-float 1000 < Kd)
-      [ ask partner [ set partner nobody ]
-        let old-partner partner
-        set partner nobody
-        setshape
-        ask old-partner [ setshape ] ] ]
-end
+;to dissociate
+;  if partner != nobody
+;    [ if ([breed] of partner = substrates) and (random-float 1000 < Kd)
+;      [ ask partner [ set partner nobody ]
+;        let old-partner partner
+;        set partner nobody
+;        setshape
+;        ask old-partner [ setshape ] ] ]
+;end
 
 ; ------------------------------------------------------------------------------
 ;;;;;;;;;;;;;;;;;;;
 ; PATCH PROCEDURES
 ;;;;;;;;;;;;;;;;;;;
 
-; lets cells reproduce the virus, release on death
-to reproduce
-  if dead? = false [
-    if infected? [
-      ifelse remaining-lifetime > 0 [ ; reproduce virus
-        set remaining-lifetime remaining-lifetime - 1 ; reduce lifetime
-        if remaining-lifetime < (infection-time / 2) [  ; only possible on half remaining liftime
-          if random-float 100 < 2 [  ; 2% chance
-            eject-sars 1
-        ] ]
-      ] [ ; death
-        set dead? true
-        eject-sars reproduction-factor
-      ]
-      precolor
-  ] ]
+to form-cell-complex
+  if infected? = false [  ;; only healty cells have enzymatic
+
+    if ppartner != nobody
+      [ stop ]  ;; can't bind to multiple molecules in this simulation
+    set ppartner one-of turtles-here with [bound? = false]  ;; search for reaction partner
+    if ppartner = nobody
+      [ stop ]  ;; stop when no reaction partners available on this patch
+    if [partner] of ppartner != nobody
+      [ set ppartner nobody stop ]  ;; just in case two cells grab the same partner
+    ifelse ( [breed] of ppartner = ang2 and random-float 100 < k-binding-ang2 )    ;; chance of binding
+        or ( [breed] of ppartner = sars and random-float 100 < k-binding-sars ) [  ;; chance of binding
+      ask ppartner [
+        set partner myself
+        set bound? true
+        recolor
+    ] ]
+    [ set ppartner nobody ]  ;; compex-forming unsucessful
+
+  ]
 end
 
+; lets cells reproduce the virus, release on death
+to reproduce
+  if dead? = false and infected? [
+    ; reduce lifetime
+    ifelse remaining-lifetime > 0 [
+      set remaining-lifetime remaining-lifetime - 1   ;; reduce lifetime
+      ; random virus ejecting
+      if remaining-lifetime < (infection-time / 2) [  ;; only possible on half remaining liftime
+        if random-float 100 < 2 [  ; 2% chance
+          eject-sars 1
+      ] ]
+    ] [ ; remaining lifetime <= 0 --> death
+      set dead? true
+      eject-sars reproduction-factor
+    ]
+    precolor
+  ]
+end
+
+;; spawns given amount SARS-CoV-2 on executing patch
 to eject-sars [ amount ]
   sprout-sars amount [
     set partner nobody
+    set bound? false
+    set size 0.8
     recolor
   ]
 end
@@ -313,13 +297,13 @@ end
 ; See Info tab for full copyright and license.
 @#$#@#$#@
 GRAPHICS-WINDOW
-289
+11
 10
-809
-531
+819
+519
 -1
 -1
-16.0
+20.0
 1
 10
 1
@@ -330,9 +314,9 @@ GRAPHICS-WINDOW
 1
 1
 0
-31
+39
 0
-31
+24
 1
 1
 1
@@ -340,10 +324,10 @@ ticks
 30.0
 
 BUTTON
-18
-35
-109
-68
+20
+556
+111
+589
 setup
 setup
 NIL
@@ -357,10 +341,10 @@ NIL
 1
 
 BUTTON
-123
-36
-214
-69
+125
+557
+216
+590
 go
 go
 T
@@ -374,234 +358,120 @@ NIL
 0
 
 SLIDER
-967
-128
-1121
-161
-Kr
-Kr
-0.0
-100.0
-100.0
-1.0
-1
-NIL
-HORIZONTAL
-
-SLIDER
-967
-58
-1121
-91
-Kc
-Kc
-0.0
-100.0
-80.0
-1.0
-1
-NIL
-HORIZONTAL
-
-SLIDER
-967
-93
-1121
-126
-Kd
-Kd
-0.0
-100.0
-62.0
-1.0
-1
-NIL
-HORIZONTAL
-
-BUTTON
-854
-128
-954
-161
-add inhibitor
-add inhibitors volume
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-0
-
-BUTTON
-854
-93
-954
-126
-add substrate
-add substrates volume
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-0
-
-PLOT
-837
-164
-1121
-342
-Concentrations
-time
-C
-0.0
-50.0
-0.0
-50.0
-true
-true
-"" ""
-PENS
-"Angiotensin 2" 1.0 0 -10899396 true "" "plot count ang2"
-"SARS-CoV-2" 1.0 0 -2674135 true "" "plot count sars"
-"hrsACE2" 1.0 0 -13345367 true "" "plot count ace2"
-
-SLIDER
-967
-23
-1121
-56
-volume
-volume
-0.0
-1000.0
-1000.0
-25.0
-1
-molecules
-HORIZONTAL
-
-SLIDER
-19
-93
-261
-126
+21
+614
+263
+647
 initial-ang2-concentration
 initial-ang2-concentration
-0
-100
-6.0
-1
+50
+250
+250.0
+10
 1
 Angiotensin 2
 HORIZONTAL
 
 SLIDER
-24
-313
-264
-346
+294
+551
+534
+584
 initial-sars-infection
 initial-sars-infection
 0
 20
-4.0
+0.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-26
-454
-264
-487
+563
+554
+801
+587
 hrsace2-concentration
 hrsace2-concentration
 0
 100
-13.0
+0.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-19
-129
-261
-162
-add-every-5-ticks
-add-every-5-ticks
+21
+650
+263
+683
+add-every-tick
+add-every-tick
 0
-50
-18.0
-1
+100
+56.0
+2
 1
 Angiotensin 2
 HORIZONTAL
 
 TEXTBOX
-21
-165
-267
-192
+23
+686
+269
+713
 set this value so Ang2 concentration stays stable\nw/o SARS & hrsACE2
 11
 0.0
 0
 
 TEXTBOX
-9
-75
-273
-93
+11
+596
+275
+614
 ╒═ Angiotensin 2 ═════════════════════╕
 11
 0.0
 1
 
 TEXTBOX
-15
-297
-279
-315
+285
+535
+549
+553
 ╒═ SARS-CoV-2 ═════════════════════╕
 11
 0.0
 1
 
 TEXTBOX
-20
-435
-278
-453
+557
+535
+815
+553
 ╒═ hrsACE2 ═══════════════════════╕
 11
 0.0
 1
 
 TEXTBOX
-10
-16
-247
-34
+12
+537
+249
+555
 ╒═ CONTROLS ═════════════════╕\n
 11
 0.0
 1
 
 BUTTON
-161
-490
-264
-523
+698
+590
+801
+623
 add hrsACE2
 add-hrsACE2
 NIL
@@ -615,25 +485,25 @@ NIL
 0
 
 SLIDER
-25
-349
-264
-382
+295
+587
+534
+620
 infection-time
 infection-time
 1
 50
-50.0
+36.0
 1
 1
 ticks
 HORIZONTAL
 
 SLIDER
-25
-384
-165
-417
+295
+622
+435
+655
 reproduction-factor
 reproduction-factor
 1
@@ -645,39 +515,154 @@ x
 HORIZONTAL
 
 SLIDER
+22
+721
+263
+754
+max-ang2-concentration
+max-ang2-concentration
+60
+500
+500.0
 20
-200
-261
-233
-max-ang2-concentration
-max-ang2-concentration
-10
-250
-40.0
-10
 1
 Angiotensin 2
 HORIZONTAL
 
 PLOT
-838
-350
-1121
-540
+834
+526
+1370
+811
 Cell Monitor
 time
 cells
 0.0
 10.0
 0.0
-1024.0
+1000.0
 true
 true
 "" ""
 PENS
 "healthy" 1.0 0 -10899396 true "" "plot count patches with [ infected? = false ]"
-"infected" 1.0 0 -13345367 true "" "plot count patches with [ infected? = true ]"
+"infected" 1.0 0 -13345367 true "" "plot count patches with [ infected? = true and dead? = false ]"
 "dead" 1.0 0 -2674135 true "" "plot count patches with [ dead? = true ]"
+
+SLIDER
+362
+706
+534
+739
+k-binding-ang2
+k-binding-ang2
+0
+100
+40.0
+5
+1
+%
+HORIZONTAL
+
+SLIDER
+361
+742
+533
+775
+k-binding-sars
+k-binding-sars
+0
+100
+80.0
+5
+1
+%
+HORIZONTAL
+
+SLIDER
+540
+706
+712
+739
+k-react-ang2
+k-react-ang2
+0
+100
+30.0
+5
+1
+%
+HORIZONTAL
+
+PLOT
+835
+10
+1371
+520
+Concentrations
+time
+C
+0.0
+50.0
+0.0
+500.0
+true
+true
+"" ""
+PENS
+"Angiotensin 2" 1.0 0 -10899396 true "" "plot count ang2"
+"SARS-CoV-2" 1.0 0 -2674135 true "" "plot count sars with [ bound? = false ]"
+"hrsACE2" 1.0 0 -13345367 true "" "plot count ace2"
+"initial Ang2" 1.0 2 -13210332 false "" "plot initial-ang2-concentration"
+"max Ang2" 1.0 2 -8053223 false "" "plot max-ang2-concentration"
+
+MONITOR
+1376
+574
+1450
+619
+% infected
+count patches with [ infected? = true and dead? = false ] / 10
+3
+1
+11
+
+MONITOR
+1375
+526
+1451
+571
+% healthy
+count patches with [ infected? = false ] / 10
+3
+1
+11
+
+MONITOR
+1377
+621
+1450
+666
+% dead
+count patches with [ dead? = true ] / 10
+3
+1
+11
+
+SLIDER
+541
+743
+713
+776
+k-cell-infection
+k-cell-infection
+0
+100
+50.0
+1
+1
+%
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?

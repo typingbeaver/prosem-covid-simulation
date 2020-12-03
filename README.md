@@ -3,13 +3,16 @@
 
 Simulation of Covid-19 using NetLogo
 
-Features:
+### Web Simulation
+You can simulate this program in your browser [here](https://www.netlogoweb.org/web?https://raw.githubusercontent.com/typingbeaver/prosem-covid-simulation/main/netlogo/covid.nlogo)!
+
+
+#### Features:
 - Viren, Enzyme etc. schwimmen umher
 - Viren docken sich an naheliegenste Enzyme zur Laufzeit an (wird noch verbessert)
 
-ToDo's:
-- An ein Enzym soll sich nur 1 Virus andocken können
-- Die Enzym-Optik muss erneut eingebaut werden (Enzyme schauen nicht mehr wie im Screenshot aus)
+#### ToDo's:
+- 
 
 Screenshot des aktuellen Stands:
-![alt text](https://s12.directupload.net/images/201127/xdt35z5m.jpg) 
+![alt text](https://s12.directupload.net/images/201203/ukb5thuj.png) 

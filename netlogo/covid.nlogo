@@ -79,10 +79,10 @@ to setup-turtles
   set-default-shape sars "virus"
   add sars initial-sars-infection
   ;; Angiotensin II
-  set-default-shape ang2 "triangle"
+  set-default-shape ang2 "substrate"
   add ang2 initial-ang2-concentration
   ;; ACE2
-  set-default-shape ace2 "x"
+  set-default-shape ace2 "enzyme"
   add ace2 hrsace2-concentration
 end
 
@@ -127,11 +127,11 @@ end
 to recolor
   ifelse breed = sars [
     ifelse bound?
-      [ set color red - 2 ]
+      [ set color red - 1 ]
       [ set color red ]
   ] [ ifelse breed = ang2 [
     ifelse bound?
-      [ set color yellow - 2 ]
+      [ set color yellow - 1 ]
       [ set color yellow ]
   ] [ if breed = ace2
     [ set color blue ]
@@ -194,6 +194,7 @@ to form-ace2-complex
         recolor
       ]
       setxy [xcor] of partner [ycor] of partner  ;; center enzyme on substrate
+      face partner
       create-link-to partner [                   ;; & link for combined movement
         tie
         hide-link
@@ -431,7 +432,7 @@ hrsace2-concentration
 hrsace2-concentration
 0
 5000
-0.0
+1000.0
 500
 1
 NIL
@@ -872,8 +873,8 @@ Circle -7500403 true true 90 90 120
 
 enzyme
 true
-0
-Polygon -2674135 true false 76 47 197 150 76 254 257 255 257 47
+1
+Polygon -2674135 true true 76 47 197 150 76 254 257 255 257 47
 
 face happy
 false

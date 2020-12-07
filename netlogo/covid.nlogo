@@ -109,6 +109,7 @@ to go
   ; leave out dissociate?
   ; ask enzymes [ dissociate ]
   ask patches [ reproduce ]          ;; let cells produce new SARS
+  ask patches [ repair ]             ;; let cells come back to life
   tick
 end
 
@@ -273,8 +274,9 @@ to reproduce
         if random-float 100 < 2 [  ; 2% chance
           eject-sars 1
       ] ]
-    ] [ ; remaining lifetime <= 0 --> death
+    ] [ ; remaining lifetime = 0 --> death
       set dead? true
+      set remaining-lifetime (remaining-lifetime - cell-repair-time)
       eject-sars reproduction-factor
     ]
     precolor
@@ -288,6 +290,19 @@ to eject-sars [ amount ]
     set bound? false
     set size 0.8
     recolor
+  ]
+end
+
+to repair
+  if dead? = true [
+    ifelse remaining-lifetime < 0 [
+      set remaining-lifetime (remaining-lifetime + 1)
+    ] [  ;; remianing-lifetime = 0 --> back alive
+      set dead? false
+      set infected? false
+      set remaining-lifetime infection-time
+      precolor
+    ]
   ]
 end
 
@@ -381,7 +396,7 @@ initial-sars-infection
 initial-sars-infection
 0
 20
-0.0
+2.0
 1
 1
 NIL
@@ -662,6 +677,21 @@ k-cell-infection
 1
 1
 %
+HORIZONTAL
+
+SLIDER
+362
+778
+534
+811
+cell-repair-time
+cell-repair-time
+0
+100
+10.0
+1
+1
+Ticks
 HORIZONTAL
 
 @#$#@#$#@

@@ -25,6 +25,12 @@ turtles-own [
   partner      ;; holds the turtle this turtle is complexed with,
                ;; or nobody if not complexed
   bound?  ;; states if SARS-CoV-2 or Ang2 is bound to an enzyme
+  remaining-time  ;; sets time after which turtles will despawn on inactitvity
+                  ;; e. g. getting broken down
+]
+
+sars-own [
+
 ]
 
 ang2-own [
@@ -62,7 +68,7 @@ to setup-cells
     ; "set" is everywhere setting up or changing:
     set ppartner nobody
     set infected? false
-    set remaining-lifetime infection-time  ;; TODO: add random?
+    set remaining-lifetime random-poisson infection-time
     set dead? false
     precolor
   ]
@@ -88,7 +94,10 @@ to add [kind amount]
     set size 0.8
     set partner nobody
     set bound? false
-    if breed = ang2 [ set deactivated? false ]
+    set remaining-time random-poisson despawn-time
+    if breed = ang2 [
+      set deactivated? false
+    ]
     recolor
   ]
 end
@@ -101,6 +110,7 @@ end
 ; When "go"-button is clicked:
 to go
   add-ang2
+  ask turtles [ despawn ]
   ask turtles [ move ]               ;; random movement
   ask ace2 [ form-ace2-complex ]     ;; free enzymes have higher priority than
   ask patches [ form-cell-complex ]  ;; cells's due to free movement
@@ -130,10 +140,9 @@ end
 
 ; change color of cells based on current status
 to precolor
-  ifelse infected? = false [
-    set pcolor pink - 1.5
-  ] [ ifelse dead? = false [
-    set pcolor remaining-lifetime * (3.5 / infection-time) ; darkens cell, grey to black
+  ifelse infected? = false [ set pcolor pink - 1.5 ]
+  [ ifelse dead? = false [
+    set pcolor remaining-lifetime * (4 / infection-time) ; darkens cell, grey to black
   ] [ ; dead? = true
     set pcolor black
   ] ]
@@ -225,6 +234,16 @@ to react-forward
   ]
 end
 
+to despawn
+  if partner = nobody [
+    ifelse remaining-time > 0 [
+      set remaining-time (remaining-time - 1)
+    ] [
+      die
+    ]
+  ]
+end
+
 ;; enzyme procedure that controls the rate at which complexed turtles break apart
 ;to dissociate
 ;  if partner != nobody
@@ -289,6 +308,7 @@ to eject-sars [ amount ]
     set partner nobody
     set bound? false
     set size 0.8
+    set remaining-time random-poisson despawn-time
     recolor
   ]
 end
@@ -300,7 +320,7 @@ to repair
     ] [  ;; remianing-lifetime = 0 --> back alive
       set dead? false
       set infected? false
-      set remaining-lifetime infection-time
+      set remaining-lifetime random-poisson infection-time
       precolor
     ]
   ]
@@ -325,8 +345,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 0
 39
@@ -396,7 +416,7 @@ initial-sars-infection
 initial-sars-infection
 0
 20
-2.0
+3.0
 1
 1
 NIL
@@ -410,9 +430,9 @@ SLIDER
 hrsace2-concentration
 hrsace2-concentration
 0
-100
+5000
 0.0
-1
+500
 1
 NIL
 HORIZONTAL
@@ -426,7 +446,7 @@ add-every-tick
 add-every-tick
 0
 100
-56.0
+72.0
 2
 1
 Angiotensin 2
@@ -523,7 +543,7 @@ reproduction-factor
 reproduction-factor
 1
 5
-2.0
+3.0
 1
 1
 x
@@ -536,10 +556,10 @@ SLIDER
 754
 max-ang2-concentration
 max-ang2-concentration
-60
-500
-500.0
-20
+50
+1000
+800.0
+50
 1
 Angiotensin 2
 HORIZONTAL
@@ -573,7 +593,7 @@ k-binding-ang2
 k-binding-ang2
 0
 100
-40.0
+60.0
 5
 1
 %
@@ -688,7 +708,22 @@ cell-repair-time
 cell-repair-time
 0
 100
-10.0
+55.0
+1
+1
+Ticks
+HORIZONTAL
+
+SLIDER
+540
+780
+725
+813
+despawn-time
+despawn-time
+0
+100
+15.0
 1
 1
 Ticks

@@ -18,7 +18,7 @@ breed [ang2 an-ang2] ; Angiotensin II
 breed [ace2 an-ace2] ; hrsACE2 (enzyme)
 
 globals [
-
+  ang2-addition
 ]
 
 turtles-own [
@@ -56,6 +56,8 @@ to setup
   ; "reset-ticks" is setting up the NetLogo-time to "0":
   reset-ticks
 
+  set ang2-addition add-every-tick
+
   ; Other "setup-" named methods are called here:
   setup-cells
   setup-turtles
@@ -83,7 +85,7 @@ to setup-turtles
   add ang2 initial-ang2-concentration
   ;; ACE2
   set-default-shape ace2 "enzyme"
-  add ace2 hrsace2-concentration
+  ;add ace2 hrsace2-concentration
 end
 
 ;; observer procedure to add molecules to reaction
@@ -111,6 +113,7 @@ end
 to go
   add-ang2
   ask turtles [ despawn ]
+  add-hrsace2
   ask turtles [ move ]               ;; random movement
   ask ace2 [ form-ace2-complex ]     ;; free enzymes have higher priority than
   ask patches [ form-cell-complex ]  ;; cells's due to free movement
@@ -151,13 +154,16 @@ end
 ;; adds Angiotensin 2 regularly until max is reached
 to add-ang2
   if count ang2 < max-ang2-concentration [
-      add ang2 add-every-tick ; TODO: needs some function
+    ;let factor ( - ang2-addition / (max-ang2-concentration * max-ang2-concentration))
+    ;let amount ( factor * (count ang2 * count ang2) + ang2-addition )
+    ;add ang2 amount
+    add ang2 add-every-tick ; TODO: needs some function
   ]
 end
 
-;; button method
+
 to add-hrsACE2
-  add ace2 hrsace2-concentration
+  if add-hrsace2? = true [ add ace2 hrsace2-concentration ]
 end
 
 ; ------------------------------------------------------------------------------
@@ -417,7 +423,7 @@ initial-sars-infection
 initial-sars-infection
 0
 20
-3.0
+4.0
 1
 1
 NIL
@@ -426,16 +432,16 @@ HORIZONTAL
 SLIDER
 563
 554
-801
+802
 587
 hrsace2-concentration
 hrsace2-concentration
 0
-5000
-1000.0
-500
+100
+0.0
+2
 1
-NIL
+hrsACE2/Tick
 HORIZONTAL
 
 SLIDER
@@ -447,7 +453,7 @@ add-every-tick
 add-every-tick
 0
 100
-72.0
+56.0
 2
 1
 Angiotensin 2
@@ -559,7 +565,7 @@ max-ang2-concentration
 max-ang2-concentration
 50
 1000
-800.0
+600.0
 50
 1
 Angiotensin 2
@@ -594,7 +600,7 @@ k-binding-ang2
 k-binding-ang2
 0
 100
-60.0
+40.0
 5
 1
 %
@@ -729,6 +735,17 @@ despawn-time
 1
 Ticks
 HORIZONTAL
+
+SWITCH
+563
+589
+694
+622
+add-hrsace2?
+add-hrsace2?
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?

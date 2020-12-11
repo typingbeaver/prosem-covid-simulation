@@ -184,7 +184,7 @@ end
 to form-ace2-complex
   if partner != nobody
     [ stop ]  ;; can't bind to multiple molecules in this simulation
-  set partner one-of other turtles-here with [bound? = false]  ;; search for reaction partner
+  set partner one-of other turtles-here  ;; search for reaction partner
   if partner = nobody
     [ stop ]  ;; stop when no reaction partners available on this patch
   if [partner] of partner != nobody
@@ -274,11 +274,11 @@ to form-cell-complex
 
     if ppartner != nobody
       [ stop ]  ;; can't bind to multiple molecules in this simulation
-    set ppartner one-of turtles-here with [bound? = false]  ;; search for reaction partner
+    set ppartner one-of turtles-here  ;; search for reaction partner
     if ppartner = nobody
       [ stop ]  ;; stop when no reaction partners available on this patch
-    if [partner] of ppartner != nobody
-      [ set ppartner nobody stop ]  ;; just in case two cells grab the same partner
+    if ([partner] of ppartner != nobody) or ([breed] of ppartner = ace2)
+      [ set ppartner nobody stop ]  ;; just in case two cells grab the same partner or cell partners with free enzyme
     ifelse ( [breed] of ppartner = ang2 and random-float 100 < k-binding-ang2 )    ;; chance of binding
         or ( [breed] of ppartner = sars and random-float 100 < k-binding-sars ) [  ;; chance of binding
       ask ppartner [

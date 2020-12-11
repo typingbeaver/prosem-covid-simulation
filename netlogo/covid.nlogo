@@ -163,7 +163,9 @@ end
 
 
 to add-hrsACE2
-  if add-hrsace2? = true [ add ace2 hrsace2-concentration ]
+  if (add-hrsace2? = true) and (ticks mod hrsace2-add-every = 0) [
+    add ace2 hrsace2-concentration
+  ]
 end
 
 ; ------------------------------------------------------------------------------
@@ -438,7 +440,7 @@ hrsace2-concentration
 hrsace2-concentration
 0
 100
-0.0
+50.0
 2
 1
 hrsACE2/Tick
@@ -510,10 +512,10 @@ TEXTBOX
 1
 
 BUTTON
-698
-590
-801
+700
 623
+803
+656
 add hrsACE2
 add-hrsACE2
 NIL
@@ -737,15 +739,30 @@ Ticks
 HORIZONTAL
 
 SWITCH
-563
-589
-694
+565
 622
+696
+655
 add-hrsace2?
 add-hrsace2?
 0
 1
 -1000
+
+SLIDER
+564
+588
+802
+621
+hrsace2-add-every
+hrsace2-add-every
+1
+100
+38.0
+1
+1
+Tick(s)
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?

@@ -16,6 +16,7 @@
 breed [sars a-sars]    ; SARS-CoV-2
 breed [ang2 an-ang2]   ; Angiotensin II
 breed [ace2 an-ace2]   ; hrsACE2 (enzyme)
+breed [ang17 an-ang17] ; Angiotensin 1-7 (product of Angiotensin II catalysis)
 
 globals [
   k-binding-ang2         ;; chance Angiotensin II can bind to enzyme
@@ -102,7 +103,8 @@ to setup-turtles
   add ang2 initial-ang2-concentration
   ;; ACE2
   set-default-shape ace2 "enzyme"
-  ;add ace2 hrsace2-concentration
+  ;; Ang1-7
+  set-default-shape ang17 "dot"
 end
 
 ;; observer procedure to add molecules to reaction
@@ -153,8 +155,13 @@ to recolor
     ifelse bound?
       [ set color yellow - 1 ]
       [ set color yellow ]
-  ] [ if breed = ace2
-    [ set color blue ]
+  ] [ ifelse breed = ace2 [
+        set color blue
+      ] [
+        if breed = ang17 [
+          set color green
+        ]
+      ]
   ] ]
 end
 
@@ -212,18 +219,17 @@ to form-ace2-complex
       ;; if complexed with SARS-CoV-2 remove turtles
       ask partner [ die ]
       die
-    ] [ ;; else bind with Angiotensin II
+    ] [ ;; if complexed with Angiotensin II
       ask partner [
         set partner myself
         set bound? true
-        recolor
+        hide-turtle
       ]
-      setxy [xcor] of partner [ycor] of partner  ;; center enzyme on substrate
-      face partner
-      create-link-to partner [                   ;; & link for combined movement
+      create-link-to partner [  ;; add link for combined movement
         tie
         hide-link
       ]
+      set shape "complex"
     ]
   ]
   [ set partner nobody ]  ;; compex-forming unsucessful
@@ -250,13 +256,17 @@ to react-forward
     ;set bound? false
     ifelse is-patch? partner
       [ ask partner [set ppartner nobody] ]  ;; if bound to cell
-    [
-      ask partner [set partner nobody]
+    [ ask partner [  ;; if bound to hrsACE2
+        set partner nobody
+        set shape "enzyme"
+      ]
       ask my-links [ die ]
-    ]   ;; if bound to hrsACE2
-    ;set partner nobody
-    ;recolor
-    die
+    ]
+    set breed ang17
+    set partner nobody
+    set bound? false
+    set remaining-time random-poisson despawn-time
+    recolor
   ]
 end
 
@@ -442,7 +452,7 @@ initial-sars-infection
 initial-sars-infection
 0
 20
-3.0
+2.0
 1
 1
 NIL
@@ -457,7 +467,7 @@ hrsace2-concentration
 hrsace2-concentration
 0
 200
-50.0
+100.0
 10
 1
 hrsACE2
@@ -472,7 +482,7 @@ add-every-tick
 add-every-tick
 0
 200
-100.0
+70.0
 5
 1
 Angiotensin 2
@@ -611,10 +621,11 @@ true
 true
 "" ""
 PENS
-"Angiotensin 2" 1.0 0 -10899396 true "" "plot count ang2"
+"Angiotensin 2" 1.0 0 -4079321 true "" "plot count ang2"
 "SARS-CoV-2" 1.0 0 -2674135 true "" "plot count sars with [ bound? = false ]"
 "hrsACE2" 1.0 0 -13345367 true "" "plot count ace2"
-"initial Ang2" 1.0 2 -13210332 false "" "plot initial-ang2-concentration"
+"initial Ang2" 1.0 2 -7171555 false "" "plot initial-ang2-concentration"
+"Angiotensin 1-7" 1.0 0 -10899396 true "" "plot count ang17"
 
 MONITOR
 1376
@@ -669,7 +680,7 @@ hrsace2-add-every
 hrsace2-add-every
 1
 20
-2.0
+1.0
 1
 1
 Tick(s)
@@ -803,8 +814,8 @@ Circle -16777216 true false 30 30 240
 complex
 true
 0
-Polygon -2674135 true false 76 47 197 150 76 254 257 255 257 47
-Polygon -10899396 true false 79 46 198 148 78 254
+Polygon -13345367 true false 76 47 197 150 76 254 257 255 257 47
+Polygon -1184463 true false 79 46 198 148 78 254
 
 cylinder
 false
@@ -819,7 +830,7 @@ Circle -7500403 true true 90 90 120
 enzyme
 true
 1
-Polygon -2674135 true true 76 47 197 150 76 254 257 255 257 47
+Polygon -13345367 true false 76 47 197 150 76 254 257 255 257 47
 
 face happy
 false

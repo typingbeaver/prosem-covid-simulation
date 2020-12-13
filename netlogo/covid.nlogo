@@ -13,11 +13,19 @@
 ; It's helpfull to define for all species a breed, 'cause of different behaviour etc.
 ; & you can change all "viruses" for example at the same time,
 ; & you can spawn new "virus"-objects by writing "sars a-sars <PutNumberHere>".
-breed [sars a-sars]  ; SARS-CoV-2
-breed [ang2 an-ang2] ; Angiotensin II
-breed [ace2 an-ace2] ; hrsACE2 (enzyme)
+breed [sars a-sars]    ; SARS-CoV-2
+breed [ang2 an-ang2]   ; Angiotensin II
+breed [ace2 an-ace2]   ; hrsACE2 (enzyme)
 
 globals [
+  k-binding-ang2         ;; chance Angiotensin II can bind to enzyme
+  k-binding-sars         ;; chance SARS-CoV-2 can bind to enzyme
+  k-react-ang2           ;; chance Angiotensin II reacts with enzyme
+  k-cell-infection       ;; chance SARS-CoV-2 will enter cell & infect it
+  k-infection-sprouting  ;; chance SARS will leave cell during infection
+  cell-repair-time       ;; average time cell needs to heal
+  despawn-time           ;; average time after which unbound molecules will disappear
+  max-ang2-concentration ;; limits Angitensin II-addition rate
   ang2-addition
 ]
 
@@ -55,6 +63,15 @@ to setup
   clear-all
   ; "reset-ticks" is setting up the NetLogo-time to "0":
   reset-ticks
+
+  set k-binding-ang2 50    ;; %
+  set k-binding-sars 80    ;; %
+  set k-react-ang2 30      ;; %
+  set k-cell-infection 20  ;; %
+  set k-infection-sprouting 3  ;; %
+  set cell-repair-time 50  ;; ticks
+  set despawn-time 20      ;; ticks
+  set max-ang2-concentration 1000  ;; turtles
 
   set ang2-addition add-every-tick
 
@@ -154,10 +171,10 @@ end
 ;; adds Angiotensin 2 regularly until max is reached
 to add-ang2
   if count ang2 < max-ang2-concentration [
-    ;let factor ( - ang2-addition / (max-ang2-concentration * max-ang2-concentration))
-    ;let amount ( factor * (count ang2 * count ang2) + ang2-addition )
-    ;add ang2 amount
-    add ang2 add-every-tick ; TODO: needs some function
+    let factor ( - ang2-addition / (max-ang2-concentration * max-ang2-concentration))
+    let amount ( factor * (count ang2 * count ang2) + ang2-addition )
+    add ang2 amount
+    ; add ang2 add-every-tick ; TODO: needs some function
   ]
 end
 
@@ -299,7 +316,7 @@ to reproduce
       set remaining-lifetime remaining-lifetime - 1   ;; reduce lifetime
       ; random virus ejecting
       if remaining-lifetime < (infection-time / 2) [  ;; only possible on half remaining liftime
-        if random-float 100 < 2 [  ; 2% chance
+        if random-float 100 < k-infection-sprouting [  ; chance of spawning
           eject-sars 1
       ] ]
     ] [ ; remaining lifetime = 0 --> death
@@ -409,9 +426,9 @@ SLIDER
 initial-ang2-concentration
 initial-ang2-concentration
 50
-250
-250.0
-10
+600
+350.0
+50
 1
 Angiotensin 2
 HORIZONTAL
@@ -425,7 +442,7 @@ initial-sars-infection
 initial-sars-infection
 0
 20
-4.0
+3.0
 1
 1
 NIL
@@ -439,11 +456,11 @@ SLIDER
 hrsace2-concentration
 hrsace2-concentration
 0
-100
+200
 50.0
-2
+10
 1
-hrsACE2/Tick
+hrsACE2
 HORIZONTAL
 
 SLIDER
@@ -454,9 +471,9 @@ SLIDER
 add-every-tick
 add-every-tick
 0
-100
-56.0
-2
+200
+100.0
+5
 1
 Angiotensin 2
 HORIZONTAL
@@ -558,21 +575,6 @@ reproduction-factor
 x
 HORIZONTAL
 
-SLIDER
-22
-721
-263
-754
-max-ang2-concentration
-max-ang2-concentration
-50
-1000
-600.0
-50
-1
-Angiotensin 2
-HORIZONTAL
-
 PLOT
 834
 526
@@ -592,51 +594,6 @@ PENS
 "healthy" 1.0 0 -10899396 true "" "plot count patches with [ infected? = false ]"
 "infected" 1.0 0 -13345367 true "" "plot count patches with [ infected? = true and dead? = false ]"
 "dead" 1.0 0 -2674135 true "" "plot count patches with [ dead? = true ]"
-
-SLIDER
-362
-706
-534
-739
-k-binding-ang2
-k-binding-ang2
-0
-100
-40.0
-5
-1
-%
-HORIZONTAL
-
-SLIDER
-361
-742
-533
-775
-k-binding-sars
-k-binding-sars
-0
-100
-80.0
-5
-1
-%
-HORIZONTAL
-
-SLIDER
-540
-706
-712
-739
-k-react-ang2
-k-react-ang2
-0
-100
-30.0
-5
-1
-%
-HORIZONTAL
 
 PLOT
 835
@@ -658,7 +615,6 @@ PENS
 "SARS-CoV-2" 1.0 0 -2674135 true "" "plot count sars with [ bound? = false ]"
 "hrsACE2" 1.0 0 -13345367 true "" "plot count ace2"
 "initial Ang2" 1.0 2 -13210332 false "" "plot initial-ang2-concentration"
-"max Ang2" 1.0 2 -8053223 false "" "plot max-ang2-concentration"
 
 MONITOR
 1376
@@ -693,51 +649,6 @@ count patches with [ dead? = true ] / 10
 1
 11
 
-SLIDER
-541
-743
-713
-776
-k-cell-infection
-k-cell-infection
-0
-100
-50.0
-1
-1
-%
-HORIZONTAL
-
-SLIDER
-362
-778
-534
-811
-cell-repair-time
-cell-repair-time
-0
-100
-55.0
-1
-1
-Ticks
-HORIZONTAL
-
-SLIDER
-540
-780
-725
-813
-despawn-time
-despawn-time
-0
-100
-15.0
-1
-1
-Ticks
-HORIZONTAL
-
 SWITCH
 565
 622
@@ -757,8 +668,8 @@ SLIDER
 hrsace2-add-every
 hrsace2-add-every
 1
-100
-38.0
+20
+2.0
 1
 1
 Tick(s)

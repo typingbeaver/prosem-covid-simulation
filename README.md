@@ -3,6 +3,8 @@
 
 ![Screenshot](https://s12.directupload.net/images/201203/ukb5thuj.png) 
 
+For more informations see [NetLogo](https://github.com/typingbeaver/prosem-covid-simulation/tree/main/netlogo) folder.
+
 ### Web Simulation
 You can simulate this model in your browser [here](https://www.netlogoweb.org/web?https://raw.githubusercontent.com/typingbeaver/prosem-covid-simulation/main/netlogo/covid.nlogo)!
 

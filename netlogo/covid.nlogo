@@ -10,12 +10,12 @@ breed [ace2 an-ace2]   ;; hrsACE2 (enzyme)
 breed [ang17 an-ang17] ;; Angiotensin 1-7 (product of enzymatic reaction)
 
 globals [
-  k-binding-ang2         ;; chance Angiotensin II will bind to ACE2
-  k-binding-sars         ;; chance SARS-CoV-2 will bind to ACE2
-  k-react-ang2           ;; chance of enzymatic reaction of Angiotensin II
-  k-cell-infection       ;; chance SARS-CoV-2 will enter cell & infect it
-  k-infection-sprouting  ;; chance new SARS will leave cell before cell death
-  despawn-time           ;; average time after which unbound molecules will disappear
+  binding-ang2           ;; chance Angiotensin II will bind to ACE2
+  binding-sars           ;; chance SARS-CoV-2 will bind to ACE2
+  react-ang2             ;; chance of enzymatic reaction of Angiotensin II
+  cell-infection         ;; chance SARS-CoV-2 will enter cell & infect it
+  infection-sprouting    ;; chance new SARS will leave cell before cell death
+  average-despawn-time   ;; average time after which unbound molecules will disappear
   max-ang2-concentration ;; limits Angitensin II-addition rate
 ]
 
@@ -46,12 +46,12 @@ to setup
   reset-ticks
 
   ;; define static values
-  set k-binding-ang2 50       ;; %
-  set k-binding-sars 80       ;; %
-  set k-react-ang2 30         ;; %
-  set k-cell-infection 20     ;; %
-  set k-infection-sprouting 5 ;; %
-  set despawn-time 15         ;; ticks
+  set binding-ang2 60       ;; %
+  set binding-sars 80       ;; %
+  set react-ang2 30         ;; %
+  set cell-infection 20     ;; %
+  set infection-sprouting 5 ;; %
+  set average-despawn-time 15  ;; ticks
   set max-ang2-concentration 2000  ;; turtles
 
   setup-cells
@@ -102,7 +102,7 @@ to set-turtle-values
     set size 0.8
     set partner nobody
     set bound? false
-    set remaining-time (random-poisson despawn-time)
+    set remaining-time (random-poisson average-despawn-time)
     recolor
 end
 
@@ -175,8 +175,10 @@ end
 
 ;; adds given amount of hrsACE2 every x tick if activated
 to add-hrsACE2
-  if add-hrsace2? and (ticks mod hrsace2-add-every = 0)
-  [ add ace2 hrsace2-amount ]
+  if add-hrsace2? and (ticks > hrsace2-add-after)
+  [ if (ticks mod hrsace2-add-every = 0)
+    [ add ace2 hrsace2-amount ]
+  ]
 end
 
 ; ------------------------------------------------------------------------------
@@ -204,8 +206,8 @@ to form-ace2-complex
   if ([partner] of partner != nobody)
     [ set partner nobody stop ]  ;; just in case two cells grab the same partner
 
-  ifelse ( ([breed] of partner = ang2) and (random-float 100 < k-binding-ang2) )  ;; chance of binding
-      or ( ([breed] of partner = sars) and (random-float 100 < k-binding-sars) )  ;; can't bind to another hrsACE2 or Angiotensin 1-7
+  ifelse ( ([breed] of partner = ang2) and (random-float 100 < binding-ang2) )  ;; chance of binding
+      or ( ([breed] of partner = sars) and (random-float 100 < binding-sars) )  ;; can't bind to another hrsACE2 or Angiotensin 1-7
   [ ifelse ([breed] of partner = sars)
     [ ;; if complexed with SARS-CoV-2 remove turtles
       ask partner [ die ]
@@ -231,7 +233,7 @@ end
 ;; SARS-CoV-2 procedure
 to infect
   if is-patch? partner  ;; hrsACE2 can't get infected
-  [ if (random-float 100 < k-cell-infection)  ;; chance to intrude cell
+  [ if (random-float 100 < cell-infection)  ;; chance to intrude cell
     [ ask partner
       [ set infected? true
         set ppartner nobody
@@ -244,7 +246,7 @@ end
 ;; Angiotensin II procedure that controls the rate at which complexed Ang2
 ;; are converted into Angiotensin 1-7 and released from the complex
 to react-forward
-  if (partner != nobody) and (random-float 100 < k-react-ang2)  ;; chance of reacting
+  if (partner != nobody) and (random-float 100 < react-ang2)  ;; chance of reacting
   [ ifelse is-patch? partner
     [ ;; if bound to cell
       ask partner [set ppartner nobody]
@@ -290,8 +292,8 @@ to form-cell-complex
     if ([partner] of ppartner != nobody)
       [ set ppartner nobody stop ]  ;; just in case two cells grab the same partner
 
-    ifelse ( [breed] of ppartner = ang2 and random-float 100 < k-binding-ang2 )  ;; chance of binding
-        or ( [breed] of ppartner = sars and random-float 100 < k-binding-sars )  ;; cell can't bind to a free hrsACE2 or Angiotensin 1-7
+    ifelse ( [breed] of ppartner = ang2 and random-float 100 < binding-ang2 )  ;; chance of binding
+        or ( [breed] of ppartner = sars and random-float 100 < binding-sars )  ;; cell can't bind to a free hrsACE2 or Angiotensin 1-7
     [ ask ppartner
       [ set partner myself
         set bound? true
@@ -310,7 +312,7 @@ to reproduce
 
       ;; random virus ejecting during infection
       if remaining-lifetime < (cell-average-infection-time / 2)  ;; only possible on half remaining liftime
-      [ if random-float 100 < k-infection-sprouting  ;; chance of sprouting
+      [ if random-float 100 < infection-sprouting  ;; chance of sprouting
         [ eject-sars 1 ]
       ]
     ]
@@ -407,9 +409,9 @@ NIL
 
 SLIDER
 17
-616
+628
 252
-649
+661
 ang2-initial-amount
 ang2-initial-amount
 50
@@ -429,7 +431,7 @@ sars-initial-infection
 sars-initial-infection
 0
 20
-3.0
+2.0
 1
 1
 NIL
@@ -437,14 +439,14 @@ HORIZONTAL
 
 SLIDER
 547
-591
-724
-624
+626
+725
+659
 hrsace2-amount
 hrsace2-amount
 0
 250
-100.0
+90.0
 10
 1
 hrsACE2
@@ -452,14 +454,14 @@ HORIZONTAL
 
 SLIDER
 17
-652
+664
 253
-685
+697
 ang2-add-every-tick
 ang2-add-every-tick
 0
 200
-90.0
+95.0
 5
 1
 Angiotensin II
@@ -467,9 +469,9 @@ HORIZONTAL
 
 TEXTBOX
 19
-688
+700
 254
-730
+761
 when changing initial amount of Angiotensin II, recalibrate this value so Angiotensin II concentration stays stable w/o SARS & hrsACE2
 11
 0.0
@@ -477,9 +479,9 @@ when changing initial amount of Angiotensin II, recalibrate this value so Angiot
 
 TEXTBOX
 11
-596
+608
 261
-614
+626
 ╒═ Angiotensin 2 ═══════════════════╕
 11
 0.0
@@ -574,7 +576,7 @@ Concentrations
 time
 no. of turtles
 0.0
-500.0
+400.0
 0.0
 1500.0
 true
@@ -632,10 +634,10 @@ add-hrsace2?
 -1000
 
 SLIDER
-548
-626
-725
-659
+547
+661
+726
+694
 hrsace2-add-every
 hrsace2-add-every
 1
@@ -680,6 +682,21 @@ NIL
 11
 0.0
 1
+
+SLIDER
+547
+590
+726
+623
+hrsace2-add-after
+hrsace2-add-after
+0
+400
+200.0
+20
+1
+ticks
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?

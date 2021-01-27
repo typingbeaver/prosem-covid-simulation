@@ -550,13 +550,13 @@ HORIZONTAL
 PLOT
 827
 528
-1363
+1328
 813
 Cell Monitor
 time
 no. of cells
 0.0
-10.0
+400.0
 0.0
 1000.0
 true

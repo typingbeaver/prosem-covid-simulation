@@ -86,6 +86,7 @@ to setup-turtles
 
   ;; Angiotensin 1-7
   set-default-shape ang17 "dot"
+  add ang17 ang2-initial-amount
 end
 
 ;; observer procedure to add molecules to reaction
@@ -701,70 +702,31 @@ HORIZONTAL
 @#$#@#$#@
 ## WHAT IS IT?
 
-This model demonstrates the kinetics of single-substrate enzyme-catalysis. The interactions between enzymes and substrates are often difficult to understand and the model allows users to visualize the complex reaction.
 
-The standard equation for this reaction is shown below.
-
-```text
-                  Kc          Kr
-        E + S <=======> E-S ------> E + P
-                  Kd
-```
-
-Here E represents Enzyme, S Substrate, E-S Enzyme-Substrate complex, and P product.  The rate constants are Kc for complex formation, Kd for complex dissociation, Kr for catalysis.  The first step in catalysis is the formation of the E-S complex.  This can consist of either covalent or non-covalent bonding.  The rates of complex formation and dissociation are very fast because they are determined by collision and separation of the molecules.  The next step is for the enzyme to catalyze the conversion of substrate to product.  This rate is much slower because the energy required for catalysis is much higher than that required for collision or separation.
-
-The model demonstrates several important properties of enzyme kinetics.  Enzyme catalysis is often assumed to be controlled by the rate of complex formation and dissociation, because it occurs much faster than the rate of catalysis. Thus, the reaction becomes dependent on the ratio of Kc / Kd.  The efficiency of catalysis can be studied by observing catalytic behavior at different substrate concentrations.
-
-By measuring the rate of complex formation at different substrate concentrations, a Michaelis-Menten Curve can be plotted.  Analysis of the plot provides biochemists with the maximum rate (Vmax) at which the reaction can proceed. As can be seen from the model, this plot is linear at low levels of substrate, and non-linear at higher levels of substrate.  By examining the model, the reasons for this relationship can be seen easily.
-
-Enzyme catalysis can also be controlled using inhibitors. Inhibitors are molecules that are structurally similar to substrate molecules that can complex with the enzyme and interfere with the E-S complex formation.  Subsequently, the shape of the Michaelis-Menten Curve will be altered. The model demonstrates the effects of inhibitors on catalysis.
 
 ## HOW TO USE IT
 
-Choose the values of Kc, Kd, and Kr with appropriate sliders:
-- Kc controls the rate at which substrates (green) and enzymes (red) stick together so that catalysis can occur
-- Kd controls the rate at which they come unstuck
-- Kr controls the rate of the forward reaction by which an enzyme (red) converts a substrate (green) to a product (blue)
 
-Having chosen appropriate values of the constants, press SETUP to clear the world and create a constant initial number of enzyme (red) molecules. Play with several different values to observe variable effects on complex formation and catalysis.
-
-Press GO to start the simulation.  A constant amount of enzyme (red) will be generated.  The concentrations of substrate, complex, and product are plotted in the CONCENTRATIONS window.
-
-Experiment with using the ADD-SUBSTRATE and ADD-INHIBITOR buttons to observe the effects of adding more molecules to the system manually as it runs.  The default setting for Kr is 0, which means that no product (blue) will be generated unless you change Kr to a non-zero value.
-
-Note that when complexes form they stop moving.  This isn't intended to be physically realistic; it just makes the formation of complexes easier to see.  (This shouldn't affect the overall behavior of the model.)
 
 ## THINGS TO NOTICE
 
-Watch the rate at which the enzyme and substrate stick together. How does this affect the conversion of substrate into product? What would happen if Kd is very high and Kc is very low? If Kr were the same order of magnitude as Kd and Kc?
+
 
 ## THINGS TO TRY
 
-Run the simulation with VOLUME set to various amounts. How does this affect the curve?
 
-If Kr is MUCH greater than Kd, what affect does this have on the reaction?  How important does complex formation become in this situation?
-
-If Kc is MUCH less than Kd, what does this mean in the real-world? How are the enzyme and substrate related under these conditions?
-
-What effect does adding inhibitor to the model have on the plot? Is Vmax affected?
 
 ## EXTENDING THE MODEL
 
-What would happen if yellow inhibitor molecules could react to form a product? How would this affect the plot?
 
-Inhibitors can be irreversible or reversible. That is, they can bind to an enzyme and never let go, or they can stick and fall off. Currently, the model simulates irreversible inhibitors. Modify the code so that the yellow molecules reversibly bind to the enzyme. How does this affect catalysis?
-
-Often, the product of catalysis is an inhibitor of the enzyme. This is called a feedback mechanism. In this model, product cannot complex with enzyme. Modify the procedures so that the product is a reversible inhibitor. How does this affect catalysis with and without yellow inhibitor?
-
-Include a slider that allows you to change the concentration of enzyme.  What affect does this have on the plot?  Vmax?  Look closely!
 
 ## NETLOGO FEATURES
 
-It is a little difficult to ensure that a reactant never participates in two reactions simultaneously.  In the future, a primitive called GRAB may be added to NetLogo; then the code in the FORM-COMPLEX procedure wouldn't need to be quite so tricky.
+It is a little difficult to ensure that a reactant never participates in two reactions simultaneously.
 
 ## CREDITS AND REFERENCES
 
-Thanks to Mike Stieff for his work on this model.
+
 
 ## HOW TO CITE
 
@@ -785,12 +747,6 @@ Copyright 2001 Uri Wilensky.
 ![CC BY-NC-SA 3.0](http://ccl.northwestern.edu/images/creativecommons/byncsa.png)
 
 This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License.  To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/3.0/ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
-
-Commercial licenses are also available. To inquire about commercial licenses, please contact Uri Wilensky at uri@northwestern.edu.
-
-This model was created as part of the projects: PARTICIPATORY SIMULATIONS: NETWORK-BASED DESIGN FOR SYSTEMS LEARNING IN CLASSROOMS and/or INTEGRATED SIMULATION AND MODELING ENVIRONMENT. The project gratefully acknowledges the support of the National Science Foundation (REPP & ROLE programs) -- grant numbers REC #9814682 and REC-0126227.
-
-<!-- 2001 Cite: Stieff, M. -->
 @#$#@#$#@
 default
 true

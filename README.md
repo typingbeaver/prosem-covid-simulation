@@ -1,7 +1,7 @@
-# _»Simulation des Befalls von Zellen durch das Coronavirus unter Einflussnahme auf das Renin-Angiotensin-System«_
+# _»Simulation des Befalls von Zellen durch SARS-CoV-2 unter Einflussnahme auf das Renin-Angiotensin-System«_
 ## Projekt-Seminar: Simulation biologischer Systeme
 
-![Screenshot](https://s12.directupload.net/images/201203/ukb5thuj.png) 
+![Screenshot of Simulation](/netlogo/screenshot.png) 
 
 For more informations see [NetLogo](https://github.com/typingbeaver/prosem-covid-simulation/tree/main/netlogo) folder.
 

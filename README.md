@@ -9,6 +9,7 @@ For more informations see [NetLogo](https://github.com/typingbeaver/prosem-covid
 You can simulate this model in your browser [here](https://www.netlogoweb.org/web?https://raw.githubusercontent.com/typingbeaver/prosem-covid-simulation/main/netlogo/covid.nlogo)!
 
 ## License & Copyright
+Copyright 2021 Niclas Bartsch.
 
 This simulation is based on
 * Stieff, M. and Wilensky, U. (2001).  NetLogo Enzyme Kinetics model.  http://ccl.northwestern.edu/netlogo/models/EnzymeKinetics.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.

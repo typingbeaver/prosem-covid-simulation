@@ -195,6 +195,7 @@ to move
   ]
 end
 
+;; (based on Enzyme Kinetics)
 to form-ace2-complex
   if (partner != nobody)
     [ stop ] ;; can't bind to multiple molecules in this simulation
@@ -246,6 +247,7 @@ end
 
 ;; Angiotensin II procedure that controls the rate at which complexed Ang2
 ;; are converted into Angiotensin 1-7 and released from the complex
+;; (based on Enzyme Kinetics)
 to react-forward
   if (partner != nobody) and (random-float 100 < react-ang2)  ;; chance of reacting
   [ ifelse is-patch? partner
@@ -281,6 +283,7 @@ end
 ; PATCH PROCEDURES
 ;;;;;;;;;;;;;;;;;;;
 
+;; (based on Enzyme Kinetics)
 to form-cell-complex
   if (infected? = false)  ;; only healty cells have enzymatic function
   [ if (ppartner != nobody)
@@ -344,7 +347,7 @@ end
 
 ; ------------------------------------------------------------------------------
 
-; Copyright 2001 Uri Wilensky, 2020 Niclas Bartsch
+; Copyright 2021 Niclas Bartsch
 ; See Info tab for full copyright and license.
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -513,7 +516,7 @@ TEXTBOX
 537
 249
 555
-╒═ CONTROLS ═════════════════╕\n
+╒═ CONTROLS ═════════════════╕
 11
 0.0
 1
@@ -702,31 +705,53 @@ HORIZONTAL
 @#$#@#$#@
 ## WHAT IS IT?
 
+This model tries to show the replication of SARS-CoV-2 using membrane enzyme ACE2 as receptor for cell entry, with resulting effects on the human Renin-Angiogentin-System of which ACE2 is a part of.
 
+Therefore this model implements the enzymatic reaction
+```text
+                 ACE2
+Angiotensin II ========> Angiotensin (1-7)
+```
+to show side effects of a SARS-CoV-2 infection, as Angiotensin II and Angiotensin (1-7) are counteregulatory. Angiotensin II has a vasoconstrictive and inflammatory effect whilst Angiotensin (1-7) is vasodilative.
+
+In addition it is possible to show the effects of treatment with human recombiant soulable ACE2.
 
 ## HOW TO USE IT
 
+Reset the simulation before every run with `setup` or 'S' on your keyboard.
 
+Simply hit `go` or 'G' on your keyboard to start a simulation with SARS-CoV-2 infection but without hrsACE2 treatment. If you want to add hrsACE2 to the simulation simply activate `add-hrsace2?`!
+
+------
+
+You can change the amount of Angiotensin II turtles with the `ang2-initial-amount` slider. Please readjust `ang2-add-every-tick` as described when doing this!
+
+The start amount of SARS-CoV-2 turtles can be changed with the slider `sars-initial infection`, as well as the reproduction factor (how many turtles will be ejected after cell death) with `sars-reproduction-factor`.
+
+In the hrsACE2 section you can set whether or not hrsACE2 should be added to the simulation ('add-hrsace2?'). Determine the point of time from when it should get added with `hrsace2-add-after` as well as the amount of turtles every chosen interval with `hrsace2-amount` and `hrsace2-add-every`.
+
+Change the cells behaviour with `cell-average-infection-time` (time until cell dies and releases SARS-CoV-2 turtles) and `cell-average-repair-time` (time until cell is replaced and available again).
 
 ## THINGS TO NOTICE
 
+How does the replication of SARS-CoV-2 affect the amount of Angiotensin II and Angiotensin (1-7) turtles? Is it affected by the amount of healthy cells?
 
+Which difference do you see after the addition of hrsACE2 to the simulation?
 
 ## THINGS TO TRY
 
-
+What effect do different amounts of hrsACE2 turtles have? Which influence does the time of addition have on effectiveness?
 
 ## EXTENDING THE MODEL
 
-
-
-## NETLOGO FEATURES
-
-It is a little difficult to ensure that a reactant never participates in two reactions simultaneously.
+The overall simlation is very basic and abstract in many places.
+You can implement a more realistic cell replacement, add a immune response or effects of inflammation or realise many other ideas.
 
 ## CREDITS AND REFERENCES
 
+This model is based on:
 
+* Stieff, M. and Wilensky, U. (2001).  NetLogo Enzyme Kinetics model.  http://ccl.northwestern.edu/netlogo/models/EnzymeKinetics.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL. (modified)
 
 ## HOW TO CITE
 
@@ -734,7 +759,7 @@ If you mention this model or the NetLogo software in a publication, we ask that 
 
 For the model itself:
 
-* Stieff, M. and Wilensky, U. (2001).  NetLogo Enzyme Kinetics model.  http://ccl.northwestern.edu/netlogo/models/EnzymeKinetics.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+* Bartsch, N. (2021). NetLogo SARS-CoV-2 replication with effects on RAS model. Department of Computer Science, University of Applied Sciences Bonn-Rhein-Sieg, Sankt Augustin, Germany.
 
 Please cite the NetLogo software as:
 
@@ -742,7 +767,7 @@ Please cite the NetLogo software as:
 
 ## COPYRIGHT AND LICENSE
 
-Copyright 2001 Uri Wilensky.
+Copyright 2021 Niclas Bartsch.
 
 ![CC BY-NC-SA 3.0](http://ccl.northwestern.edu/images/creativecommons/byncsa.png)
 

@@ -1,5 +1,10 @@
 # NetLogo Simulation
 
+For simulation instructions please see the `Info` section within NetLogo.
+
+----
+# Outdated development notes 
+
 ## Agents
 
 ### Turtles
